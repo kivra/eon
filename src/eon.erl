@@ -54,10 +54,11 @@
 
 %%%_* Includes =========================================================
 -include("eon.hrl").
+-include_lib("stdlib/include/assert.hrl").
 -include_lib("stdlib2/include/prelude.hrl").
 
 %%%_* Macros ===========================================================
--define(assertObjEq(Obj1, Obj2), (true = equal(Obj1, Obj2))).
+-define(assertObjEq(Obj1, Obj2), ?assert(equal(Obj1, Obj2))).
 
 %%%_* Code =============================================================
 %%%_ * Types -----------------------------------------------------------
@@ -86,7 +87,7 @@ new(Xs) when is_list(Xs)         -> orddict:from_list(partition(Xs));
 new(Xs)                          -> orddict:from_list(dict:to_list(Xs)).
 
 partition(KVs) ->
-  ?hence(0 =:= length(KVs) rem 2),
+  ?assert(0 =:= length(KVs) rem 2),
   [{K, V} || [K, V] <- s2_lists:partition(2, KVs)].
 
 -spec new(object(A, B), func(boolean())) -> object(A, B).
@@ -222,7 +223,7 @@ vals(Obj) -> [V || {_, V} <- new(Obj)].
 %% from both Obj1 and Obj2.
 %% Obj1 and Obj2 must have the same set of keys.
 zip(Obj1, Obj2) ->
-  ?hence(lists:sort(keys(Obj1)) =:= lists:sort(keys(Obj2))),
+  ?assertEqual(lists:sort(keys(Obj1)), lists:sort(keys(Obj2))),
   orddict:merge( fun(_K, V1, V2) -> {V1, V2} end
                , lists:sort(new(Obj1)), lists:sort(new(Obj2)) ).
 
