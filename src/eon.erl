@@ -58,7 +58,8 @@
 -include_lib("stdlib2/include/prelude.hrl").
 
 %%%_* Macros ===========================================================
--define(assertObjEq(Obj1, Obj2), ?assert(equal(Obj1, Obj2))).
+-define(assertObjEq(Obj1, Obj2), ?assertEqual( lists:sort(dsort(new(Obj1)))
+                                             , lists:sort(dsort(new(Obj2))) )).
 
 %%%_* Code =============================================================
 %%%_ * Types -----------------------------------------------------------
@@ -122,8 +123,12 @@ ddel(Obj, [H|T]=K) when is_list(K) ->
 -spec equal(object(_, _), object(_, _)) -> boolean().
 %% @doc equal(Obj1, Obj2) is true iff Obj1 matches Obj2.
 equal(Obj, Obj)   -> true;
-equal(Obj1, Obj2) -> lists:sort(dsort(new(Obj1)))=:=lists:sort(dsort(new(Obj2))).
-
+equal(Obj1, Obj2) ->
+  try ?assertObjEq(Obj1, Obj2) of
+    ok -> true
+  catch
+    error:{assertEqual, _} -> false
+  end.
 
 -spec get(object(A, B), A) -> maybe(B, notfound).
 %% @doc get(Obj, Key) is the value associated with Key in Obj,
