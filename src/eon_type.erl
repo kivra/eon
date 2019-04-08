@@ -146,7 +146,7 @@ do_merge(Obj, Decl) ->
                                 {_, _} -> P; %default value
                                 _      -> {P, ?dummy}
                               end || P <- Type:parameters()]),
-            ?assert(eon:is_empty(eon:difference(Args, Params))),
+            ?assertEqual(eon:new(), eon:difference(Args, Params)),
             #spec{ term   = Term
                  , type   = Type
                  , p_have = Args
