@@ -58,7 +58,7 @@ get_full_key_test() ->
             , { untypable
               , [{<<"email">>, type_email, email, the_term, validate}]}}]},
   [<<"contact_info">>, <<"email">>] = get_error_key_list(Rsn),
-  <<"contact_info.email">>         = get_full_key(Rsn).
+  <<"contact_info.email">>          = get_full_key(Rsn).
 
 get_root_cause__primitive_type__test() ->
   {error, Rsn} = eon_type:check_term(42, type_string),
