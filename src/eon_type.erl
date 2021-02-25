@@ -67,7 +67,6 @@ get_error(key,  {K, _, _, _, _                 }) -> K;
 get_error(type, {_, T, _, _, _                 }) -> T;
 get_error(name, {_, _, N, _, _                 }) -> N;
 get_error(term, {_, _, _, T, _                 }) -> T;
-get_error(rsn,  {lifted_exn, R, _}) -> R;
 get_error(rsn,  {_, _, _, _, {lifted_exn, R, _}}) -> R;
 get_error(rsn,  {_, _, _, _, R                 }) -> R.
 
