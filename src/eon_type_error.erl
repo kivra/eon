@@ -50,6 +50,7 @@ binary_join(List, Sep) ->
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
+-ifdef(kivra_nova).
 -include_lib("eunit/include/eunit.hrl").
 
 get_full_key_test() ->
@@ -83,4 +84,5 @@ get_root_cause__list_type__test() ->
   {error, Rsn} = eon_type:check_term([<<"foo">>, 42], type_strings),
   {42, type_string} = get_root_cause(Rsn).
 
+-endif.
 -endif.
