@@ -30,9 +30,13 @@
 -export([dset/3]).
 -export([size/1]).
 -export([vals/1]).
+-export([with/2]).
+-export([without/2]).
 -export([zip/2]).
 
 %% Higher-order
+-export([all/2]).
+-export([any/2]).
 -export([filter/2]).
 -export([fold/3]).
 -export([map/2]).
@@ -223,6 +227,20 @@ size(Obj) -> orddict:size(new(Obj)).
 vals(Obj) -> [V || {_, V} <- new(Obj)].
 
 
+-spec with(object(A, _), [A]) -> object(A, _).
+%% @doc Returns an object with the keys specified in `Keys`. Any key in `Keys`
+%% that does not exist in `Obj` is ignored.
+with(Obj, Keys) ->
+  filter(fun(Key, _V) -> lists:member(Key, Keys) end, Obj).
+
+
+-spec without(object(A, _), [A]) -> object(A, _).
+%% @doc Returns an object without the keys specified in `Keys`. Any key in
+%% `Keys` that does not exist in `Obj` is ignored.
+without(Obj, Keys) ->
+  lists:foldl(fun(Key, Acc) -> del(Acc, Key) end, Obj, Keys).
+
+
 -spec zip(object(A, B), object(A, C)) -> object(A, {B, C}).
 %% @doc zip(Obj1, Obj2) is an object which maps keys from Obj1 to values
 %% from both Obj1 and Obj2.
@@ -233,6 +251,28 @@ zip(Obj1, Obj2) ->
                , lists:sort(new(Obj1)), lists:sort(new(Obj2)) ).
 
 %%%_ * Higher-order ----------------------------------------------------
+-spec all(func(boolean()), object(_, _)) -> boolean().
+%% @doc all(F, Obj) returns `true` if `F` evaluates to `true` for all
+%% entries in Obj.
+all(F, Obj) ->
+  if is_function(F, 1) -> fold( fun(V, Acc)    -> Acc andalso F(V) end
+                              , true, Obj);
+     is_function(F, 2) -> fold( fun(K, V, Acc) -> Acc andalso F(K, V) end
+                              , true, Obj)
+  end.
+
+
+-spec any(func(boolean()), object(_, _)) -> boolean().
+%% @doc any(F, Obj) returns `true` if `F` evaluates to `true` for any
+%% entry in Obj.
+any(F, Obj) ->
+  if is_function(F, 1) -> fold( fun(V, Acc)    -> Acc orelse F(V) end
+                              , false, Obj);
+     is_function(F, 2) -> fold( fun(K, V, Acc) -> Acc orelse F(K, V) end
+                              , false, Obj)
+  end.
+
+
 -spec map(func(C), object(A, _)) -> object(A, C).
 %% @doc map(F, Obj) is the result of mapping F over Obj's entries.
 map(F, Obj) ->
@@ -445,9 +485,29 @@ vals_test() ->
   true = lists:member(1, Vs),
   true = lists:member(2, Vs).
 
+with_test() ->
+  ?assertObjEq([foo,1, bar,2],
+               with([foo,1, bar,2, baz,3], [foo, bar])).
+
+without_test() ->
+  ?assertObjEq([baz,3],
+               without([foo,1, bar,2, baz,3], [foo, bar])).
+
 zip_test() ->
   ?assertObjEq([foo,{bar, baz}],
                zip([foo,bar], [foo,baz])).
+
+all_test() ->
+  ?assert(all(fun(V)        -> V < 3       end, [a,1, b,2])),
+  ?assertNot(all(fun(V)     -> V < 3       end, [a,1, b,4])),
+  ?assert(all(fun(K, _V)    -> K < <<"c">> end, [<<"a">>,1, <<"b">>,2])),
+  ?assertNot(all(fun(K, _V) -> K < <<"c">> end, [<<"a">>,1, <<"d">>,2])).
+
+any_test() ->
+  ?assert(any(fun(V)        -> V < 3       end, [a,1, b,4])),
+  ?assertNot(any(fun(V)     -> V < 3       end, [a,3, b,4])),
+  ?assert(any(fun(K, _V)    -> K < <<"c">> end, [<<"a">>,1, <<"d">>,2])),
+  ?assertNot(any(fun(K, _V) -> K < <<"c">> end, [<<"c">>,1, <<"d">>,2])).
 
 map_test() ->
   ?assertObjEq([foo,1],
