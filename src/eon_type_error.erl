@@ -50,8 +50,11 @@ binary_join(List, Sep) ->
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
--ifdef(kivra_nova).
 -include_lib("eunit/include/eunit.hrl").
+
+types_exist() ->
+  lists:any( fun(Str) -> string:find(Str, "kivra_nova") =/= nomatch end
+           , code:get_path()).
 
 get_full_key_test() ->
   Rsn = { untypable
@@ -80,5 +83,4 @@ get_root_cause__list_type__test() ->
   {error, Rsn} = eon_type:check_term([<<"foo">>, 42], test_strings),
   ?assertEqual({42, test_string}, get_root_cause(Rsn)).
 
--endif.
 -endif.
