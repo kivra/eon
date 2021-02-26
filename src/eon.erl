@@ -487,11 +487,15 @@ vals_test() ->
 
 with_test() ->
   ?assertObjEq([foo,1, bar,2],
-               with([foo,1, bar,2, baz,3], [foo, bar])).
+               with([foo,1, bar,2, baz,3], [foo, bar])),
+  ?assertObjEq([foo,1, bar,2],
+               with([foo,1, bar,2, baz,3], [foo, bar, hello])).
 
 without_test() ->
   ?assertObjEq([baz,3],
-               without([foo,1, bar,2, baz,3], [foo, bar])).
+               without([foo,1, bar,2, baz,3], [foo, bar])),
+  ?assertObjEq([baz,3],
+               without([foo,1, bar,2, baz,3], [foo, bar, hello])).
 
 zip_test() ->
   ?assertObjEq([foo,{bar, baz}],
