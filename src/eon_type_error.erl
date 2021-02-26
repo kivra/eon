@@ -50,8 +50,11 @@ binary_join(List, Sep) ->
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
--ifdef(kivra_nova).
 -include_lib("eunit/include/eunit.hrl").
+
+types_exist() ->
+  lists:any( fun(Str) -> string:find(Str, "kivra_nova") =/= nomatch end
+           , code:get_path()).
 
 get_full_key_test() ->
   Rsn = { untypable
@@ -61,11 +64,20 @@ get_full_key_test() ->
   [<<"contact_info">>, <<"email">>] = get_error_key_list(Rsn),
   <<"contact_info.email">>          = get_full_key(Rsn).
 
-get_root_cause__primitive_type__test() ->
+get_root_cause_test_() ->
+  case types_exist() of
+    false -> [];
+    true  -> [ fun get_root_cause__primitive_type/0
+             , fun get_root_cause__recursive_type_wrong_nested_type/0
+             , fun get_root_cause__recursive_type_missing_field/0
+             , fun get_root_cause__list_type/0]
+  end.
+
+get_root_cause__primitive_type() ->
   {error, Rsn} = eon_type:check_term(42, type_string),
   {42, type_string} = get_root_cause(Rsn).
 
-get_root_cause__recursive_type_wrong_nested_type__test() ->
+get_root_cause__recursive_type_wrong_nested_type() ->
   Term =
     [ {<<"orgnr">>, <<"SE1234">>}
     , {<<"name">>, <<"Test">>}
@@ -73,16 +85,15 @@ get_root_cause__recursive_type_wrong_nested_type__test() ->
   {error, Rsn} = eon_type:check_term(Term, type_company_id_item),
   {<<"SE1234">>, type_orgnr} = get_root_cause(Rsn).
 
-get_root_cause__recursive_type_missing_field__test() ->
+get_root_cause__recursive_type_missing_field() ->
   Term =
     [ {<<"name">>, <<"Test">>}
     ],
   {error, Rsn} = eon_type:check_term(Term, type_company_id_item),
   {Term, type_company_id_item} = get_root_cause(Rsn).
 
-get_root_cause__list_type__test() ->
+get_root_cause__list_type() ->
   {error, Rsn} = eon_type:check_term([<<"foo">>, 42], type_strings),
   {42, type_string} = get_root_cause(Rsn).
 
--endif.
 -endif.
