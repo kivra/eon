@@ -238,7 +238,7 @@ with(Obj, Keys) ->
 %% @doc Returns an object without the keys specified in `Keys`. Any key in
 %% `Keys` that does not exist in `Obj` is ignored.
 without(Obj, Keys) ->
-  lists:foldl(fun(Key, Acc) -> del(Acc, Key) end, Obj, Keys).
+  filter(fun(Key, _V) -> not lists:member(Key, Keys) end, Obj).
 
 
 -spec zip(object(A, B), object(A, C)) -> object(A, {B, C}).
@@ -254,24 +254,35 @@ zip(Obj1, Obj2) ->
 -spec all(func(boolean()), object(_, _)) -> boolean().
 %% @doc all(F, Obj) returns `true` if `F` evaluates to `true` for all
 %% entries in Obj.
-all(F, Obj) ->
-  if is_function(F, 1) -> fold( fun(V, Acc)    -> Acc andalso F(V) end
-                              , true, Obj);
-     is_function(F, 2) -> fold( fun(K, V, Acc) -> Acc andalso F(K, V) end
-                              , true, Obj)
-  end.
+all(F, Obj) when is_function(F, 1) ->
+  foldl_while(fun(V, _Acc) -> format_all(F(V)) end, true, Obj);
+all(F, Obj) when is_function(F, 2) ->
+  foldl_while(fun(K, V, _Acc) -> format_all(F(K, V)) end, true, Obj).
 
 
 -spec any(func(boolean()), object(_, _)) -> boolean().
 %% @doc any(F, Obj) returns `true` if `F` evaluates to `true` for any
 %% entry in Obj.
-any(F, Obj) ->
-  if is_function(F, 1) -> fold( fun(V, Acc)    -> Acc orelse F(V) end
-                              , false, Obj);
-     is_function(F, 2) -> fold( fun(K, V, Acc) -> Acc orelse F(K, V) end
-                              , false, Obj)
-  end.
+any(F, Obj) when is_function(F, 1) ->
+  foldl_while(fun(V, _Acc) -> format_any(F(V)) end, false, Obj);
+any(F, Obj) when is_function(F, 2) -> 
+  foldl_while(fun(K, V, _Acc) -> format_any(F(K, V)) end, false, Obj).
 
+
+foldl_while(F, Acc, [{_K, V} | Tail]) when is_function(F, 2) ->
+  continue_or_acc(F, F(V, Acc), Tail);
+foldl_while(F, Acc, [{K, V} | Tail]) when is_function(F, 3) ->
+  continue_or_acc(F, F(K, V, Acc), Tail);
+foldl_while(_F, Acc, []) -> Acc.
+
+continue_or_acc(F, {ok, Acc}, Obj) -> foldl_while(F, Acc, Obj);
+continue_or_acc(_, {stop, Acc}, _) -> Acc.
+
+format_all(true)  -> {ok, true};
+format_all(false) -> {stop, false}.
+
+format_any(false) -> {ok, false};
+format_any(true)  -> {stop, true}.
 
 -spec map(func(C), object(A, _)) -> object(A, C).
 %% @doc map(F, Obj) is the result of mapping F over Obj's entries.
@@ -486,32 +497,34 @@ vals_test() ->
   true = lists:member(2, Vs).
 
 with_test() ->
-  ?assertObjEq([foo,1, bar,2],
-               with([foo,1, bar,2, baz,3], [foo, bar])),
-  ?assertObjEq([foo,1, bar,2],
-               with([foo,1, bar,2, baz,3], [foo, bar, hello])).
+  ?assertObjEq(eon:new([foo,1, bar,2]),
+               with(eon:new([foo,1, bar,2, baz,3]), [foo, bar])),
+  ?assertObjEq(eon:new([foo,1, bar,2]),
+               with(eon:new([foo,1, bar,2, baz,3]), [foo, bar, hello])).
 
 without_test() ->
-  ?assertObjEq([baz,3],
-               without([foo,1, bar,2, baz,3], [foo, bar])),
-  ?assertObjEq([baz,3],
-               without([foo,1, bar,2, baz,3], [foo, bar, hello])).
+  ?assertObjEq(eon:new([baz,3]),
+               without(eon:new([foo,1, bar,2, baz,3]), [foo, bar])),
+  ?assertObjEq(eon:new([baz,3]),
+               without(eon:new([foo,1, bar,2, baz,3]), [foo, bar, hello])).
 
 zip_test() ->
   ?assertObjEq([foo,{bar, baz}],
                zip([foo,bar], [foo,baz])).
 
 all_test() ->
-  ?assert(all(fun(V)        -> V < 3       end, [a,1, b,2])),
-  ?assertNot(all(fun(V)     -> V < 3       end, [a,1, b,4])),
-  ?assert(all(fun(K, _V)    -> K < <<"c">> end, [<<"a">>,1, <<"b">>,2])),
-  ?assertNot(all(fun(K, _V) -> K < <<"c">> end, [<<"a">>,1, <<"d">>,2])).
+  ?assert(all(fun(V)        -> V < 3       end, eon:new([]))),
+  ?assert(all(fun(V)        -> V < 3       end, eon:new([a,1, b,2]))),
+  ?assertNot(all(fun(V)     -> V < 3       end, eon:new([a,1, b,4]))),
+  ?assert(all(fun(K, _V)    -> K < <<"c">> end, eon:new([<<"a">>,1, <<"b">>,2]))),
+  ?assertNot(all(fun(K, _V) -> K < <<"c">> end, eon:new([<<"a">>,1, <<"d">>,2]))).
 
 any_test() ->
-  ?assert(any(fun(V)        -> V < 3       end, [a,1, b,4])),
-  ?assertNot(any(fun(V)     -> V < 3       end, [a,3, b,4])),
-  ?assert(any(fun(K, _V)    -> K < <<"c">> end, [<<"a">>,1, <<"d">>,2])),
-  ?assertNot(any(fun(K, _V) -> K < <<"c">> end, [<<"c">>,1, <<"d">>,2])).
+  ?assertNot(any(fun(V)     -> V < 3       end, eon:new([]))),
+  ?assert(any(fun(V)        -> V < 3       end, eon:new([a,1, b,4]))),
+  ?assertNot(any(fun(V)     -> V < 3       end, eon:new([a,3, b,4]))),
+  ?assert(any(fun(K, _V)    -> K < <<"c">> end, eon:new([<<"a">>,1, <<"d">>,2]))),
+  ?assertNot(any(fun(K, _V) -> K < <<"c">> end, eon:new([<<"c">>,1, <<"d">>,2]))).
 
 map_test() ->
   ?assertObjEq([foo,1],

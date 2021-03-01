@@ -52,10 +52,6 @@ binary_join(List, Sep) ->
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
-types_exist() ->
-  lists:any( fun(Str) -> string:find(Str, "kivra_nova") =/= nomatch end
-           , code:get_path()).
-
 get_full_key_test() ->
   Rsn = { untypable
         , [ { <<"contact_info">>, type_contact_info, contact_info, the_term
