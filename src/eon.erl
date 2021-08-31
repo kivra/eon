@@ -28,6 +28,7 @@
 -export([keys/1]).
 -export([set/3]).
 -export([dset/3]).
+-export([rename/3]).
 -export([size/1]).
 -export([vals/1]).
 -export([with/2]).
@@ -225,6 +226,10 @@ dset(Obj, [H|T]=K, Val) when is_list(K) ->
         {ok, O} when is_list(O) -> set(Obj, H, dset(O, T, Val));
         {ok, _}                 -> set(Obj, H, dset(new(), T, Val))
     end.
+
+-spec rename(object(A, B), A, A) -> object(A, B).
+%% @doc rename(Obj, OldKey, NewKey) renames OldKey to NewKey.
+rename(O, K0, K1) -> eon:set(eon:del(O, K0), K1, eon:get_(O, K0)).
 
 -spec size(object(_, _)) -> non_neg_integer().
 %% @doc size(Obj) is the number of mappings in Obj.
@@ -529,6 +534,11 @@ dget_test() ->
   {error, notfound} = dget(P, <<"four.five">>),
   {error, {lifted_exn, {badmatch, {error, notfound}}, _}}
                     = ?lift(dget_(new(), "foo")).
+
+rename_test() ->
+  Obj0 = eon:new([{foo, 1}, {bar, 2}]),
+  Obj1 = eon:rename(Obj0, bar, baz),
+  ?assertObjEq(eon:new([{foo, 1}, {baz, 2}]), Obj1).
 
 size_test() ->
   0 = size(new()),
