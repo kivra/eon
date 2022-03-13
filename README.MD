@@ -57,7 +57,7 @@ dict:store(k2, v2, dict:store(k1, v1, dict:new()))
 
 ### Basics
 
-The `eon_type1 module supports checking EON objects (dicts) against a
+The `eon_type` module supports checking EON objects (dicts) against a
 type declaration.
 
 The API is `eon_type:check_obj(Obj, Decl)` where both `Obj` and `Decl` are
