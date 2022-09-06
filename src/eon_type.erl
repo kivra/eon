@@ -278,7 +278,16 @@ typecheck(#spec{term=Term0, type=Type, p_have=P_have}) ->
         false -> throw({error, validate})
       end;
     eon_type_rec ->
-      ?unlift(check_obj(Term0, Type:decl(Term0, P_have)));
+      Term = ?unlift(check_obj(Term0, Type:decl(Term0, P_have))),
+      case erlang:function_exported(Type, extra_validation, 2) of
+        true ->
+          case Type:extra_validation(Term, P_have) of
+            ok -> Term;
+            {error, Reason} -> {error, {untypable, Reason}}
+          end;
+        false ->
+          Term
+      end;
     eon_type_list ->
       [?unlift(check_term(T, Type:element_type(Term0, P_have)))|| T <- Term0]
   end.
