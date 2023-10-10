@@ -33,6 +33,7 @@
 -type decl(A)    :: lit(A, spec()).    %declaration
 -type spec()     :: type()             %single alternative
                   | sum().             %multiple alternatives
+-export_type([spec/0]).
 -type type()     :: cb()               %eon_type_*
                   | {cb(), lit(_, _)}. %type args
 -type sum()      :: [spec()].          %left-to-right
