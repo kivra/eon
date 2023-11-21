@@ -281,6 +281,8 @@ typecheck(#spec{term=Term0, type=Type, p_have=P_have}) ->
     eon_type_rec ->
       Term = ?unlift(check_obj(Term0, Type:decl(Term0, P_have))),
       case erlang:function_exported(Type, extra_validation, 2) of
+        true when Term =:= [] ->
+          Term;
         true ->
           case Type:extra_validation(Term, P_have) of
             ok -> Term;
