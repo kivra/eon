@@ -5,7 +5,6 @@
 
 %%%_* Module declaration ===============================================
 -module(eon_type).
--feature(maybe_expr, disable).
 
 %%%_* Exports ==========================================================
 -export([ check_obj/2
@@ -48,7 +47,7 @@
         }).
 
 %%%_ * API -------------------------------------------------------------
--spec check_obj(obj(A, _), decl(A)) -> maybe(obj(A, _), _).
+-spec check_obj(obj(A, _), decl(A)) -> 'maybe'(obj(A, _), _).
 %% @doc check_obj(Obj, Decl) is the converted version of Obj if it
 %% conforms to Decl or an error if not.
 check_obj(Obj, Decl) ->
@@ -57,7 +56,7 @@ check_obj(Obj, Decl) ->
     , fun check/1
     ]).
 
--spec check_term(_, spec()) -> maybe(_, _).
+-spec check_term(_, spec()) -> 'maybe'(_, _).
 %% @doc check_term(Term, Spec) is the converted version of Term if it
 %% conforms to Spec or an error if not.
 check_term(Term, Spec) ->
@@ -76,7 +75,7 @@ get_error(rsn,  {_, _, _, _, R                 }) -> R.
 raise(Err) -> throw({error, Err}).
 
 %%%_ * Parsing ---------------------------------------------------------
--spec parse(obj(A, _), decl(A)) -> maybe([obj(A, #spec{})], _).
+-spec parse(obj(A, _), decl(A)) -> 'maybe'([obj(A, #spec{})], _).
 parse(Obj, Decl) ->
   s2_maybe:do(
     [ ?thunk({Obj, Decl})
