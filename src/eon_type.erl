@@ -5,6 +5,7 @@
 
 %%%_* Module declaration ===============================================
 -module(eon_type).
+-feature(maybe_expr, disable).
 
 %%%_* Exports ==========================================================
 -export([ check_obj/2

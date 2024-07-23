@@ -5,6 +5,7 @@
 
 %%%_* Module declaration ===============================================
 -module(eon).
+-feature(maybe_expr, disable).
 -compile({no_auto_import, [size/1]}).
 
 %%%_* Exports ==========================================================
