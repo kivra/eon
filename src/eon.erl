@@ -144,7 +144,7 @@ equal(Obj1, Obj2) ->
     error:{assertEqual, _} -> false
   end.
 
--spec get(object(A, B), A) -> maybe(B, notfound).
+-spec get(object(A, B), A) -> 'maybe'(B, notfound).
 %% @doc get(Obj, Key) is the value associated with Key in Obj,
 %% or an error if no such value exists.
 get(Obj, Key) ->
@@ -169,7 +169,7 @@ get_(Obj, Key) ->
   {ok, Res} = get(Obj, Key),
   Res.
 
--spec dget(object(deep_key(), B), deep_key()) -> maybe(B, notfound).
+-spec dget(object(deep_key(), B), deep_key()) -> 'maybe'(B, notfound).
 %% @doc dget(Obj, Key) is the value associated with the deep Key in Obj,
 %% or an error if no such value exists. A deep key is a `.`-delimetered key.
 dget(Obj, Key) ->
