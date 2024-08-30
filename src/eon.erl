@@ -79,7 +79,8 @@
 -type object(A, B)  :: orddict:orddict()
                      | kv_list(A, B)
                      | literal(A, B)
-                     | dict:dict().
+                     | dict:dict()
+                     | map(A, B).
 
 -type literal(A, B) :: [A | B].
 -type deep_key()    :: binary() | list().
