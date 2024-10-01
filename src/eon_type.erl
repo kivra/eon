@@ -286,7 +286,7 @@ typecheck(#spec{term=Term0, type=Type, p_have=P_have}) ->
         true ->
           case Type:extra_validation(Term, P_have) of
             ok -> Term;
-            {error, Reason} -> {error, {untypable, Reason}}
+            {error, Reason} -> {error, {untypable, [{x, Type, x, Reason, []}]}}
           end;
         false ->
           Term
