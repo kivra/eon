@@ -79,4 +79,10 @@ get_root_cause__list_type__test() ->
   {error, Rsn} = eon_type:check_term([<<"foo">>, 42], test_strings),
   ?assertEqual({42, test_string}, get_root_cause(Rsn)).
 
+get_root_cause__extra_validation__test() ->
+    {error, Rsn} = eon_type:check_term([{<<"foo">>, 17}], test_rec_extra),
+    ?assertMatch({nope, test_rec_extra}, get_root_cause(Rsn)),
+    {error, Rsn2} = eon_type:check_term([{<<"foo">>, 117}], test_rec_extra),
+    ?assertMatch({117, test_prim}, get_root_cause(Rsn2)).
+
 -endif.
