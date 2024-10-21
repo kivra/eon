@@ -289,7 +289,7 @@ typecheck(#spec{term=Term0, type=Type, p_have=P_have}) ->
             %% Since the extra_validation is typically used for checks
             %% involving several terms, we return a reason given by
             %% the validation code instead of a term name.
-            {error, Reason} -> {error, {untypable, [{x, Type, x, Reason, []}]}}
+            {error, Reason} -> {error, {untypable, [{to_iolist(Reason), Type, x, Reason, []}]}}
           end;
         false ->
           Term
@@ -297,6 +297,13 @@ typecheck(#spec{term=Term0, type=Type, p_have=P_have}) ->
     eon_type_list ->
       [?unlift(check_term(T, Type:element_type(Term0, P_have)))|| T <- Term0]
   end.
+
+to_iolist(Atom) when is_atom(Atom) ->
+  erlang:atom_to_binary(Atom);
+to_iolist(Float) when is_float(Float) ->
+  erlang:float_to_binary(Float);
+to_iolist(Any) ->
+  Any.
 
 %%%_ * Behaviours ------------------------------------------------------
 is_alias(Type) -> constructor(Type) =:= eon_type_alias.
